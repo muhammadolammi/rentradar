@@ -1,0 +1,53 @@
+package main
+
+import (
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+)
+
+func server(apiConfig *Config) {
+
+	// Define CORS options
+	corsOptions := cors.Options{
+		AllowedOrigins: []string{"http://localhost"},
+
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"}, // You can customize this based on your needs
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum age for cache, in seconds
+	}
+	router := chi.NewRouter()
+	apiRoute := chi.NewRouter()
+	// ADD MIDDLREWARE
+	// A good base middleware stack
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	router.Use(cors.Handler(corsOptions))
+	// router.Use(apiConfig.userAuth())
+
+	// ADD ROUTES
+	apiRoute.Get("/hello", successResponse)
+	apiRoute.Get("/error", errorResponse)
+
+	// Handle Auth
+	apiRoute.Post("/register", apiConfig.registerHandler)
+	apiRoute.Post("/login", apiConfig.loginHandler)
+
+	router.Mount("/api", apiRoute)
+	srv := &http.Server{
+		Addr:              ":" + apiConfig.PORT,
+		Handler:           router,
+		ReadHeaderTimeout: time.Minute,
+	}
+
+	log.Printf("Serving on port: %s\n", apiConfig.PORT)
+	log.Fatal(srv.ListenAndServe())
+}
