@@ -8,20 +8,20 @@ CREATE TABLE listings (
     description TEXT NOT NULL,
     -- Annual or Monthly
     rent_type TEXT NOT NULL, 
-    price NUMERIC NOT NULL,
+    price BIGINT NOT NULL,
     -- City/Area
     location TEXT NOT NULL,
     latitude FLOAT ,
     longtitude FLOAT,
     -- shared/selcontained/one bedroom flat etc.
-    type TEXT NOT NULL,
+    house_type TEXT NOT NULL,
     -- if the apartment is verified by admin
-    verified BOOLEAN DEFAULT false,
+    verified BOOLEAN NOT NULL  DEFAULT false,
     --  images JSONB NOT NULL,
     images JSON NOT NULL,
     --  ENUM('active','inactive','rented')
     status TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_listings_agent
         FOREIGN KEY (agent_id)

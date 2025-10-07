@@ -5,9 +5,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE alerts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL,
-
-    min_price NUMERIC NOT NULL,
-    max_price NUMERIC NOT NULL,
+    min_price BIGINT NOT NULL,
+    max_price BIGINT NOT NULL,
     location TEXT NOT NULL,
     type TEXT NOT NULL,
     --  ENUM('email','whatsapp','sms')

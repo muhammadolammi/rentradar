@@ -8,34 +8,112 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
+const createListing = `-- name: CreateListing :one
+INSERT INTO listings (
+agent_id, title,
+description, rent_type, price,location,house_type,images, status  )
+VALUES ( $1, $2, $3, $4, $5,$6,$7,$8,$9)
+RETURNING id, agent_id, title, description, rent_type, price, location, latitude, longtitude, house_type, verified, images, status, created_at
+`
+
+type CreateListingParams struct {
+	AgentID     uuid.UUID
+	Title       string
+	Description string
+	RentType    string
+	Price       int64
+	Location    string
+	HouseType   string
+	Images      json.RawMessage
+	Status      string
+}
+
+// INSERT INTO listings (
+// agent_id, title,
+// description, rent_type, price,location, latitude,longtitude,type,images, status  )
+// VALUES ( $1, $2, $3, $4, $5,$6,$7,$8,$9,$10,$11)
+// RETURNING *;
+func (q *Queries) CreateListing(ctx context.Context, arg CreateListingParams) (Listing, error) {
+	row := q.db.QueryRowContext(ctx, createListing,
+		arg.AgentID,
+		arg.Title,
+		arg.Description,
+		arg.RentType,
+		arg.Price,
+		arg.Location,
+		arg.HouseType,
+		arg.Images,
+		arg.Status,
+	)
+	var i Listing
+	err := row.Scan(
+		&i.ID,
+		&i.AgentID,
+		&i.Title,
+		&i.Description,
+		&i.RentType,
+		&i.Price,
+		&i.Location,
+		&i.Latitude,
+		&i.Longtitude,
+		&i.HouseType,
+		&i.Verified,
+		&i.Images,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getListings = `-- name: GetListings :many
-SELECT id, agent_id, title, description, rent_type, price, location, latitude, longtitude, type, verified, images, status, created_at
+
+SELECT id, agent_id, title, description, rent_type, price, location, latitude, longtitude, house_type, verified, images, status, created_at
 FROM listings
 WHERE
-  (location = coalesce($1, location) OR coalesce($1, location) IS NULL)
-AND (price >= coalesce($2, min_price) OR coalesce($2, min_price) IS NULL)
-AND (price<= coalesce($3, max_price) OR coalesce($3, max_price) IS NULL)
- AND (type = coalesce($4, type) OR coalesce($4, type) IS NULL)
+  (location = coalesce($1, location))
+  AND (price >= coalesce($2::bigint, price))
+  AND (price <= coalesce($3::bigint, price))
+  AND (house_type = coalesce($4, type))
 ORDER BY created_at DESC
-LIMIT $5
+LIMIT $6
+OFFSET $5
 `
 
 type GetListingsParams struct {
 	Location sql.NullString
-	MinPrice sql.NullString
-	MaxPrice sql.NullString
+	MinPrice sql.NullInt64
+	MaxPrice sql.NullInt64
 	Type     sql.NullString
+	Offset   int32
 	Limit    int32
 }
 
+// SELECT *
+// FROM listings
+// WHERE
+//
+//	(location = coalesce(sqlc.narg('location'), location) OR coalesce(sqlc.narg('location'), location) IS NULL)
+//
+// AND (price >= coalesce(sqlc.narg('min_price'), min_price::numeric) OR coalesce(sqlc.narg('min_price'), min_price::numeric) IS NULL)
+// AND (price<= coalesce(sqlc.narg('max_price')::numeric, max_price) OR coalesce(sqlc.narg('max_price')::numeric, max_price) IS NULL)
+//
+//	AND (type = coalesce(sqlc.narg('type'), type) OR coalesce(sqlc.narg('type'), type) IS NULL)
+//
+// ORDER BY created_at DESC
+// LIMIT sqlc.arg('limit')
+// OFFSET sqlc.arg('offset');
 func (q *Queries) GetListings(ctx context.Context, arg GetListingsParams) ([]Listing, error) {
 	rows, err := q.db.QueryContext(ctx, getListings,
 		arg.Location,
 		arg.MinPrice,
 		arg.MaxPrice,
 		arg.Type,
+		arg.Offset,
 		arg.Limit,
 	)
 	if err != nil {
@@ -55,7 +133,7 @@ func (q *Queries) GetListings(ctx context.Context, arg GetListingsParams) ([]Lis
 			&i.Location,
 			&i.Latitude,
 			&i.Longtitude,
-			&i.Type,
+			&i.HouseType,
 			&i.Verified,
 			&i.Images,
 			&i.Status,

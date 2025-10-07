@@ -10,7 +10,7 @@ CREATE TABLE users (
     -- role ENUM('user','agent','admin', "landlord") NOT NULL,
     role TEXT  NOT NULL ,
     password TEXT NOT NULL ,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- +goose Down

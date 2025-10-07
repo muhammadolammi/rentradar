@@ -5,7 +5,7 @@ CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
      user_id UUID NOT NULL,
     listing_id UUID NOT NULL,
-    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     -- ENUM('pending','sent','failed')
     status TEXT NOT NULL,
 

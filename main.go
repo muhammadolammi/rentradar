@@ -26,6 +26,11 @@ func main() {
 		log.Println("empty dbURL")
 		return
 	}
+	api_key := os.Getenv("API_KEY")
+	if dbURL == "" {
+		log.Println("empty apiKEY")
+		return
+	}
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -35,8 +40,9 @@ func main() {
 	dbQueries := database.New(db)
 
 	apiConfig := Config{
-		PORT: port,
-		DB:   dbQueries,
+		PORT:   port,
+		DB:     dbQueries,
+		APIKEY: api_key,
 	}
 
 	server(&apiConfig)

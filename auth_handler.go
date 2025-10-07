@@ -24,7 +24,7 @@ func (apiConfig *Config) registerHandler(w http.ResponseWriter, r *http.Request)
 	err := decoder.Decode(&body)
 
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("error decoding body from http request. err: %v", err))
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("error decoding request body. err: %v", err))
 		return
 	}
 	if body.Email == "" {

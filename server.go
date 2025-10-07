@@ -31,7 +31,7 @@ func server(apiConfig *Config) {
 	router.Use(middleware.Recoverer)
 
 	router.Use(cors.Handler(corsOptions))
-	// router.Use(apiConfig.userAuth())
+	router.Use(apiConfig.verifyApiKey())
 
 	// ADD ROUTES
 	apiRoute.Get("/hello", successResponse)
@@ -40,6 +40,10 @@ func server(apiConfig *Config) {
 	// Handle Auth
 	apiRoute.Post("/register", apiConfig.registerHandler)
 	apiRoute.Post("/login", apiConfig.loginHandler)
+
+	//  Listings handlers
+	apiRoute.Get("/listings", apiConfig.getListingsHandler)
+	apiRoute.Post("/listings", apiConfig.postListingsHandler)
 
 	router.Mount("/api", apiRoute)
 	srv := &http.Server{

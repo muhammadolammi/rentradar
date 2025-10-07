@@ -7,6 +7,7 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -14,16 +15,16 @@ import (
 type Agent struct {
 	ID          uuid.UUID
 	UserID      uuid.UUID
-	CompanyName sql.NullString
-	Verified    sql.NullBool
-	Rating      sql.NullFloat64
+	CompanyName string
+	Verified    bool
+	Rating      float64
 }
 
 type Alert struct {
 	ID            uuid.UUID
 	UserID        uuid.UUID
-	MinPrice      string
-	MaxPrice      string
+	MinPrice      int64
+	MaxPrice      int64
 	Location      string
 	Type          string
 	ContactMethod string
@@ -41,22 +42,22 @@ type Listing struct {
 	Title       string
 	Description string
 	RentType    string
-	Price       string
+	Price       int64
 	Location    string
 	Latitude    sql.NullFloat64
 	Longtitude  sql.NullFloat64
-	Type        string
-	Verified    sql.NullBool
+	HouseType   string
+	Verified    bool
 	Images      json.RawMessage
 	Status      string
-	CreatedAt   sql.NullTime
+	CreatedAt   time.Time
 }
 
 type Notification struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
 	ListingID uuid.UUID
-	SentAt    sql.NullTime
+	SentAt    time.Time
 	Status    string
 }
 
@@ -68,5 +69,5 @@ type User struct {
 	PhoneNumber sql.NullString
 	Role        string
 	Password    string
-	CreatedAt   sql.NullTime
+	CreatedAt   time.Time
 }
