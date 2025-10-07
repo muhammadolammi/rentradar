@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/muhammadolammi/rentradar/internal/database"
 	"github.com/muhammadolammi/rentradar/internal/helpers"
 )
 
 func (apiConfig *Config) GetListingsHandler(w http.ResponseWriter, r *http.Request) {
-
 	// things like limit and page should be gotten using body
 	body := struct {
 		MinPrice int64 `json:"min_price"`
@@ -143,4 +144,24 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	helpers.RespondWithJson(w, http.StatusOK, DbListingToModelsListing(listing))
+}
+
+func (apiConfig *Config) GetListingHandler(w http.ResponseWriter, r *http.Request) {
+
+	id := chi.URLParam(r, "playlistID")
+	uuidID, err := uuid.Parse(id)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error parsing uuid. err: %v", err))
+		return
+	}
+
+	listing, err := apiConfig.DB.GetListing(context.Background(), uuidID)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error geting listing. err: %v", err))
+		return
+	}
+
+	converted_listings := DbListingToModelsListing(listing)
+	helpers.RespondWithJson(w, http.StatusOK, converted_listings)
+
 }

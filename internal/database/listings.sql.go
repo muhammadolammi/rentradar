@@ -33,11 +33,6 @@ type CreateListingParams struct {
 	Status      string
 }
 
-// INSERT INTO listings (
-// agent_id, title,
-// description, rent_type, price,location, latitude,longtitude,type,images, status  )
-// VALUES ( $1, $2, $3, $4, $5,$6,$7,$8,$9,$10,$11)
-// RETURNING *;
 func (q *Queries) CreateListing(ctx context.Context, arg CreateListingParams) (Listing, error) {
 	row := q.db.QueryRowContext(ctx, createListing,
 		arg.AgentID,
@@ -70,8 +65,33 @@ func (q *Queries) CreateListing(ctx context.Context, arg CreateListingParams) (L
 	return i, err
 }
 
-const getListings = `-- name: GetListings :many
+const getListing = `-- name: GetListing :one
+SELECT id, agent_id, title, description, rent_type, price, location, latitude, longtitude, house_type, verified, images, status, created_at FROM listings WHERE $1=id
+`
 
+func (q *Queries) GetListing(ctx context.Context, id uuid.UUID) (Listing, error) {
+	row := q.db.QueryRowContext(ctx, getListing, id)
+	var i Listing
+	err := row.Scan(
+		&i.ID,
+		&i.AgentID,
+		&i.Title,
+		&i.Description,
+		&i.RentType,
+		&i.Price,
+		&i.Location,
+		&i.Latitude,
+		&i.Longtitude,
+		&i.HouseType,
+		&i.Verified,
+		&i.Images,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getListings = `-- name: GetListings :many
 SELECT id, agent_id, title, description, rent_type, price, location, latitude, longtitude, house_type, verified, images, status, created_at
 FROM listings
 WHERE
@@ -93,20 +113,6 @@ type GetListingsParams struct {
 	Limit     int32
 }
 
-// SELECT *
-// FROM listings
-// WHERE
-//
-//	(location = coalesce(sqlc.narg('location'), location) OR coalesce(sqlc.narg('location'), location) IS NULL)
-//
-// AND (price >= coalesce(sqlc.narg('min_price'), min_price::numeric) OR coalesce(sqlc.narg('min_price'), min_price::numeric) IS NULL)
-// AND (price<= coalesce(sqlc.narg('max_price')::numeric, max_price) OR coalesce(sqlc.narg('max_price')::numeric, max_price) IS NULL)
-//
-//	AND (type = coalesce(sqlc.narg('type'), type) OR coalesce(sqlc.narg('type'), type) IS NULL)
-//
-// ORDER BY created_at DESC
-// LIMIT sqlc.arg('limit')
-// OFFSET sqlc.arg('offset');
 func (q *Queries) GetListings(ctx context.Context, arg GetListingsParams) ([]Listing, error) {
 	rows, err := q.db.QueryContext(ctx, getListings,
 		arg.Location,

@@ -48,6 +48,7 @@ func server(apiConfig *handlers.Config) {
 	//  Listings handlers
 	apiRoute.Get("/listings", apiConfig.GetListingsHandler)
 	apiRoute.Post("/listings", apiConfig.AuthMiddleware([]byte(apiConfig.JWTKEY), apiConfig.PostListingsHandler))
+	apiRoute.Get("/listings/{ID}", apiConfig.GetListingHandler)
 
 	router.Mount("/api", apiRoute)
 	srv := &http.Server{
