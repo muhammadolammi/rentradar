@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/muhammadolammi/rentradar/internal/database"
+	"github.com/muhammadolammi/rentradar/internal/handlers"
 )
 
 func main() {
@@ -31,6 +32,11 @@ func main() {
 		log.Println("empty apiKEY")
 		return
 	}
+	jwt_key := os.Getenv("JWT_KEY")
+	if jwt_key == "" {
+		log.Println("empty jwtKEY")
+		return
+	}
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -39,10 +45,11 @@ func main() {
 	}
 	dbQueries := database.New(db)
 
-	apiConfig := Config{
+	apiConfig := handlers.Config{
 		PORT:   port,
 		DB:     dbQueries,
 		APIKEY: api_key,
+		JWTKEY: jwt_key,
 	}
 
 	server(&apiConfig)

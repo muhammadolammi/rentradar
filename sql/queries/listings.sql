@@ -17,7 +17,7 @@ WHERE
   (location = coalesce(sqlc.narg('location'), location))
   AND (price >= coalesce(sqlc.narg('min_price')::bigint, price))
   AND (price <= coalesce(sqlc.narg('max_price')::bigint, price))
-  AND (house_type = coalesce(sqlc.narg('type'), type))
+  AND (house_type = coalesce(sqlc.narg('house_type'), house_type))
 ORDER BY created_at DESC
 LIMIT sqlc.arg('limit')
 OFFSET sqlc.arg('offset');

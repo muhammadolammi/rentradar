@@ -78,19 +78,19 @@ WHERE
   (location = coalesce($1, location))
   AND (price >= coalesce($2::bigint, price))
   AND (price <= coalesce($3::bigint, price))
-  AND (house_type = coalesce($4, type))
+  AND (house_type = coalesce($4, house_type))
 ORDER BY created_at DESC
 LIMIT $6
 OFFSET $5
 `
 
 type GetListingsParams struct {
-	Location sql.NullString
-	MinPrice sql.NullInt64
-	MaxPrice sql.NullInt64
-	Type     sql.NullString
-	Offset   int32
-	Limit    int32
+	Location  sql.NullString
+	MinPrice  sql.NullInt64
+	MaxPrice  sql.NullInt64
+	HouseType sql.NullString
+	Offset    int32
+	Limit     int32
 }
 
 // SELECT *
@@ -112,7 +112,7 @@ func (q *Queries) GetListings(ctx context.Context, arg GetListingsParams) ([]Lis
 		arg.Location,
 		arg.MinPrice,
 		arg.MaxPrice,
-		arg.Type,
+		arg.HouseType,
 		arg.Offset,
 		arg.Limit,
 	)

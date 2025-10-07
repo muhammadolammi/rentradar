@@ -7,8 +7,6 @@ CREATE TABLE agents (
     company_name TEXT UNIQUE NOT NULL,
     verified BOOLEAN NOT NULL DEFAULT false,
     rating FLOAT NOT NULL DEFAULT 0,
-
-
     CONSTRAINT fk_agent_user
         FOREIGN KEY (user_id)
         REFERENCES users(id)

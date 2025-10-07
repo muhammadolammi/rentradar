@@ -6,7 +6,7 @@ CREATE TABLE favourites (
     user_id UUID NOT NULL,
     listing_id UUID NOT NULL,
 
-     CONSTRAINT fk_favourites_user
+    CONSTRAINT fk_favourites_user
         FOREIGN KEY (user_id)
         REFERENCES users(id)
         ON DELETE CASCADE,

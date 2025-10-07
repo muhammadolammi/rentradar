@@ -21,3 +21,12 @@ SELECT EXISTS (
 
 -- name: GetUserWithEmail :one
 SELECT * FROM users WHERE $1=email;
+-- name: GetUser :one
+SELECT * FROM users WHERE $1=id;
+
+
+-- name: UpdatePassword :exec
+UPDATE users
+SET 
+  password = $1
+WHERE email = $2;

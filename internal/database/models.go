@@ -61,6 +61,14 @@ type Notification struct {
 	Status    string
 }
 
+type RefreshToken struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Token     string
+	ExpiresAt time.Time
+	CreatedAt time.Time
+}
+
 type User struct {
 	ID          uuid.UUID
 	FirstName   string
