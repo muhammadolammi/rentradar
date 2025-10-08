@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -14,54 +15,85 @@ import (
 )
 
 func (apiConfig *Config) GetListingsHandler(w http.ResponseWriter, r *http.Request) {
-	// things like limit and page should be gotten using body
-	body := struct {
-		MinPrice int64 `json:"min_price"`
-		MaxPrice int64 `json:"max_price"`
-		Page     int   `json:"page"`
-		Limit    int   `json:"limit"`
-	}{}
 	//  filters should be gootten with url param (location, type)
 	location := r.URL.Query().Get("location")
-	list_type := r.URL.Query().Get("type")
+	propertyTypeName := r.URL.Query().Get("property_type_name")
+	minPrice := r.URL.Query().Get("min_price")
+	maxPrice := r.URL.Query().Get("max_price")
+	page := r.URL.Query().Get("page")
+	limit := r.URL.Query().Get("limit")
 
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&body)
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error decoding request body. err: %v", err))
-		return
-	}
 	//  Manage nullable parameters
-	location_param := sql.NullString{Valid: false}
-	min_price_param := sql.NullInt64{Valid: false}
-	max_price_param := sql.NullInt64{Valid: false}
-	house_type_param := sql.NullString{Valid: false}
+	locationParam := sql.NullString{Valid: false}
+	minPriceParam := sql.NullInt64{Valid: false}
+	maxPriceParam := sql.NullInt64{Valid: false}
+	propertyTypeParam := uuid.NullUUID{
+		Valid: false,
+	}
 	if location != "" {
-		location_param = sql.NullString{Valid: true, String: location}
+		locationParam = sql.NullString{Valid: true, String: location}
 	}
-	if list_type != "" {
-		house_type_param = sql.NullString{Valid: true, String: list_type}
-	}
-	if body.MinPrice != 0 {
+	if propertyTypeName != "" {
+		propertyType, err := apiConfig.DB.GetPropertyTypeWithName(r.Context(), propertyTypeName)
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error getting property type. err: %v", err))
+			return
+		}
 
-		min_price_param = sql.NullInt64{Valid: true, Int64: body.MinPrice}
+		propertyTypeParam = uuid.NullUUID{
+			Valid: true,
+			UUID:  propertyType.ID,
+		}
 	}
-	if body.MaxPrice != 0 {
+	if minPrice != "" {
+		minPriceInt, err := strconv.Atoi(minPrice)
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error converting minprice string to int. err: %v", err))
+			return
+		}
 
-		max_price_param = sql.NullInt64{Valid: true, Int64: body.MaxPrice}
+		minPriceParam = sql.NullInt64{Valid: true, Int64: int64(minPriceInt)}
 	}
+	if maxPrice != "" {
+		maxPriceInt, err := strconv.Atoi(maxPrice)
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error converting maxprice string to int. err: %v", err))
+			return
+		}
 
-	//  calculate Offset using the limits listings per page
-	offset := (body.Page - 1) * body.Limit
+		maxPriceParam = sql.NullInt64{Valid: true, Int64: int64(maxPriceInt)}
+	}
+	offset := 0
+	if page != "" {
+		pageInt, err := strconv.Atoi(page)
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error converting page string to int. err: %v", err))
+			return
+		}
+		//  calculate Offset using the limits listings per page
+
+		offset = (pageInt - 1) * 20
+	}
+	limitInt := 20
+	if limit != "" {
+		limitIntt, err := strconv.Atoi(limit)
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error converting page string to int. err: %v", err))
+			return
+		}
+		//  calculate Offset using the limits listings per page
+
+		limitInt = limitIntt
+	}
 
 	listings, err := apiConfig.DB.GetListings(context.Background(), database.GetListingsParams{
 		// Location: ,
-		Offset:    int32(offset),
-		Limit:     int32(body.Limit),
-		Location:  location_param,
-		MinPrice:  min_price_param,
-		MaxPrice:  max_price_param,
-		HouseType: house_type_param,
+		Offset:         int32(offset),
+		Limit:          int32(limitInt),
+		Location:       locationParam,
+		MinPrice:       minPriceParam,
+		MaxPrice:       maxPriceParam,
+		PropertyTypeID: propertyTypeParam,
 	})
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error geting listings. err: %v", err))
@@ -84,13 +116,12 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	body := struct {
-		Description string          `json:"description"`
-		Title       string          `json:"title"`
-		RentType    string          `json:"rent_type"`
-		HouseType   string          `json:"house_type"`
-		Images      json.RawMessage `json:"images"`
-		Price       int64           `json:"price"`
-		Location    string          `json:"location"`
+		Description    string          `json:"description"`
+		Title          string          `json:"title"`
+		PropertyTypeId uuid.UUID       `json:"property_type_id"`
+		Images         json.RawMessage `json:"images"`
+		Price          int64           `json:"price"`
+		Location       string          `json:"location"`
 	}{}
 
 	decoder := json.NewDecoder(r.Body)
@@ -107,14 +138,11 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing description.")
 		return
 	}
-	if body.HouseType == "" {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing house_type.")
+	if body.PropertyTypeId == uuid.Nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing property_type_id.")
 		return
 	}
-	if body.RentType == "" {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing rent_type.")
-		return
-	}
+
 	if len(body.Images) == 0 || string(body.Images) == "[]" || string(body.Images) == "{}" {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing images.")
 		return
@@ -128,14 +156,13 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	listing, err := apiConfig.DB.CreateListing(context.Background(), database.CreateListingParams{
-		AgentID:     agent.ID,
-		Price:       body.Price,
-		Location:    body.Location,
-		Description: body.Description,
-		Title:       body.Title,
-		HouseType:   body.HouseType,
-		RentType:    body.RentType,
-		Images:      body.Images,
+		AgentID:        agent.ID,
+		Price:          body.Price,
+		Location:       body.Location,
+		Description:    body.Description,
+		Title:          body.Title,
+		PropertyTypeID: body.PropertyTypeId,
+		Images:         body.Images,
 		// Status should be active on creation
 		Status: "active",
 	})
@@ -148,7 +175,7 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 
 func (apiConfig *Config) GetListingHandler(w http.ResponseWriter, r *http.Request) {
 
-	id := chi.URLParam(r, "playlistID")
+	id := chi.URLParam(r, "ID")
 	uuidID, err := uuid.Parse(id)
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error parsing uuid. err: %v", err))

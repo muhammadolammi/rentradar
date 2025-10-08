@@ -6,15 +6,12 @@ CREATE TABLE listings (
     agent_id UUID NOT NULL,
     title TEXT  NOT NULL ,
     description TEXT NOT NULL,
-    -- Annual or Monthly
-    rent_type TEXT NOT NULL, 
     price BIGINT NOT NULL,
     -- City/Area
     location TEXT NOT NULL,
     latitude FLOAT ,
     longtitude FLOAT,
-    -- shared/selcontained/one bedroom flat etc.
-    house_type TEXT NOT NULL,
+    property_type_id UUID NOT NULL, 
     -- if the apartment is verified by admin
     verified BOOLEAN NOT NULL  DEFAULT false,
     --  images JSONB NOT NULL,
@@ -26,6 +23,10 @@ CREATE TABLE listings (
     CONSTRAINT fk_listings_agent
         FOREIGN KEY (agent_id)
         REFERENCES agents(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_listings_property_type
+        FOREIGN KEY (property_type_id)
+        REFERENCES property_types(id)
         ON DELETE CASCADE
     
     );

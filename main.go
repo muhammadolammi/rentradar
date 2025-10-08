@@ -37,6 +37,11 @@ func main() {
 		log.Println("empty jwtKEY")
 		return
 	}
+	sudo_key := os.Getenv("SUDO_KEY")
+	if sudo_key == "" {
+		log.Println("empty sudoKEY")
+		return
+	}
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -46,12 +51,11 @@ func main() {
 	dbQueries := database.New(db)
 
 	apiConfig := handlers.Config{
-		PORT:   port,
-		DB:     dbQueries,
-		APIKEY: api_key,
-		JWTKEY: jwt_key,
+		PORT:    port,
+		DB:      dbQueries,
+		APIKEY:  api_key,
+		JWTKEY:  jwt_key,
+		SUDOKEY: sudo_key,
 	}
-
 	server(&apiConfig)
-
 }

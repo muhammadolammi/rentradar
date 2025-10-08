@@ -21,36 +21,35 @@ type Agent struct {
 }
 
 type Alert struct {
-	ID            uuid.UUID
-	UserID        uuid.UUID
-	MinPrice      int64
-	MaxPrice      int64
-	Location      string
-	Type          string
-	ContactMethod string
+	ID             uuid.UUID
+	UserID         uuid.UUID
+	MinPrice       int64
+	MaxPrice       int64
+	Location       string
+	PropertyTypeID uuid.UUID
+	ContactMethod  string
 }
 
-type Favourite struct {
+type Favorite struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
 	ListingID uuid.UUID
 }
 
 type Listing struct {
-	ID          uuid.UUID
-	AgentID     uuid.UUID
-	Title       string
-	Description string
-	RentType    string
-	Price       int64
-	Location    string
-	Latitude    sql.NullFloat64
-	Longtitude  sql.NullFloat64
-	HouseType   string
-	Verified    bool
-	Images      json.RawMessage
-	Status      string
-	CreatedAt   time.Time
+	ID             uuid.UUID
+	AgentID        uuid.UUID
+	Title          string
+	Description    string
+	Price          int64
+	Location       string
+	Latitude       sql.NullFloat64
+	Longtitude     sql.NullFloat64
+	PropertyTypeID uuid.UUID
+	Verified       bool
+	Images         json.RawMessage
+	Status         string
+	CreatedAt      time.Time
 }
 
 type Notification struct {
@@ -59,6 +58,11 @@ type Notification struct {
 	ListingID uuid.UUID
 	SentAt    time.Time
 	Status    string
+}
+
+type PropertyType struct {
+	ID   uuid.UUID
+	Name string
 }
 
 type RefreshToken struct {

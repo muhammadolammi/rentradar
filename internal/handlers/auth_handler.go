@@ -69,6 +69,10 @@ func (apiConfig *Config) RegisterHandler(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
+	if body.Role == "admin" {
+		helpers.RespondWithError(w, http.StatusUnauthorized, "admin sign up not allowed")
+		return
+	}
 	// Hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {

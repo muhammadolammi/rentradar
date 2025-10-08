@@ -11,6 +11,7 @@ import (
 
 func TestRegisterLoginAndRefresh(t *testing.T) {
 	env := SetupTestEnv(t)
+	t.Logf("-- Registering User ")
 
 	// ---------- REGISTER ----------
 	registerBody := map[string]string{
@@ -25,9 +26,12 @@ func TestRegisterLoginAndRefresh(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(registerJSON))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("API-KEY", env.App.APIKEY)
+
 	w := httptest.NewRecorder()
 
-	env.App.RegisterHandler(w, req)
+	// env.App.RegisterHandler(w, req)
+	env.Router.ServeHTTP(w, req)
 
 	// If the user already exists, continue
 	if w.Code == http.StatusBadRequest && strings.Contains(w.Body.String(), "User already exist") {
@@ -35,6 +39,8 @@ func TestRegisterLoginAndRefresh(t *testing.T) {
 	} else if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d, body: %s", w.Code, w.Body.String())
 	}
+	t.Logf("✅ Successfully registered ")
+	t.Logf("--- Loging User In ")
 
 	// ---------- LOGIN ----------
 	loginBody := map[string]string{
@@ -45,9 +51,12 @@ func TestRegisterLoginAndRefresh(t *testing.T) {
 
 	req = httptest.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(loginJSON))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("API-KEY", env.App.APIKEY)
+
 	w = httptest.NewRecorder()
 
-	env.App.LoginHandler(w, req)
+	// env.App.LoginHandler(w, req)
+	env.Router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d, body: %s", w.Code, w.Body.String())
@@ -62,6 +71,9 @@ func TestRegisterLoginAndRefresh(t *testing.T) {
 	if loginResp.AccessToken == "" {
 		t.Fatal("access_token not found in response")
 	}
+	t.Logf("✅ Successfully Logged In")
+
+	t.Logf("--- Refreshing token")
 
 	// ---------- REFRESH ----------
 	// get refresh cookie set by LoginHandler
@@ -79,12 +91,16 @@ func TestRegisterLoginAndRefresh(t *testing.T) {
 	}
 
 	req = httptest.NewRequest(http.MethodPost, "/refresh", nil)
+	req.Header.Set("API-KEY", env.App.APIKEY)
+
 	req.AddCookie(refreshCookie)
 	w = httptest.NewRecorder()
 
-	env.App.RefreshTokens(w, req)
+	env.Router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200 from refresh, got %d, body: %s", w.Code, w.Body.String())
 	}
+	t.Logf("✅ Successfully refreshed tokens.")
+
 }

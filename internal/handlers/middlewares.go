@@ -15,9 +15,14 @@ import (
 func (apiConfig *Config) VerifyApiKey() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 			api_key := r.Header.Get("API-KEY")
+			if api_key == "" {
+				helpers.RespondWithError(w, http.StatusUnauthorized, "missing API-KEY header")
+				return
+			}
 			if api_key != apiConfig.APIKEY {
-				helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid Api key")
+				helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid API-KEY key")
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -26,7 +31,7 @@ func (apiConfig *Config) VerifyApiKey() func(http.Handler) http.Handler {
 }
 
 // Middleware to check for the AUTHORIZATION in user only enpoints in the authorization header for all requests.
-func (apiConfig *Config) AuthMiddleware(jwtKey []byte, next func(http.ResponseWriter, *http.Request, User)) http.HandlerFunc {
+func (apiConfig *Config) AuthMiddleware(requireSudo bool, jwtKey []byte, next func(http.ResponseWriter, *http.Request, User)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
@@ -69,6 +74,19 @@ func (apiConfig *Config) AuthMiddleware(jwtKey []byte, next func(http.ResponseWr
 			return
 		}
 
+		// --- Optional SUDO Verification ---
+		if requireSudo {
+			sudoKey := r.Header.Get("SUDO-KEY")
+			if sudoKey == "" {
+				helpers.RespondWithError(w, http.StatusUnauthorized, "missing SUDO-KEY header")
+				return
+			}
+			if sudoKey != apiConfig.SUDOKEY {
+
+				helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid SUDO-API key")
+				return
+			}
+		}
 		next(w, r, DbUserToModelsUser(user))
 	})
 }

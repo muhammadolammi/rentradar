@@ -10,10 +10,11 @@ import (
 )
 
 type Config struct {
-	DB     *database.Queries
-	PORT   string
-	APIKEY string
-	JWTKEY string
+	DB      *database.Queries
+	PORT    string
+	APIKEY  string
+	JWTKEY  string
+	SUDOKEY string
 }
 
 type Agent struct {
@@ -25,36 +26,35 @@ type Agent struct {
 }
 
 type Alert struct {
-	ID            uuid.UUID `json:"id"`
-	UserID        uuid.UUID `json:"user_id"`
-	MinPrice      string    `json:"min_price"`
-	MaxPrice      string    `json:"max_price"`
-	Location      string    `json:"location"`
-	Type          string    `json:"type"`
-	ContactMethod string    `json:"contact_method"`
+	ID             uuid.UUID `json:"id"`
+	UserID         uuid.UUID `json:"user_id"`
+	MinPrice       int64     `json:"min_price"`
+	MaxPrice       int64     `json:"max_price"`
+	Location       string    `json:"location"`
+	PropertyTypeID uuid.UUID `json:"property_type"`
+	ContactMethod  string    `json:"contact_method"`
 }
 
-type Favourite struct {
+type Favorite struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    uuid.UUID `json:"user_id"`
 	ListingID uuid.UUID `json:"lsting_id"`
 }
 
 type Listing struct {
-	ID          uuid.UUID       `json:"id"`
-	AgentID     uuid.UUID       `json:"agent_id"`
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	RentType    string          `json:"rent_type"`
-	Price       int64           `json:"price"`
-	Location    string          `json:"location"`
-	Latitude    sql.NullFloat64 `json:"latitude"`
-	Longtitude  sql.NullFloat64 `json:"longtitude"`
-	HouseType   string          `json:"house_type"`
-	Verified    bool            `json:"verified"`
-	Images      json.RawMessage `json:"images"`
-	Status      string          `json:"status"`
-	CreatedAt   time.Time       `json:"created_at"`
+	ID             uuid.UUID       `json:"id"`
+	AgentID        uuid.UUID       `json:"agent_id"`
+	Title          string          `json:"title"`
+	Description    string          `json:"description"`
+	Price          int64           `json:"price"`
+	Location       string          `json:"location"`
+	Latitude       sql.NullFloat64 `json:"latitude"`
+	Longtitude     sql.NullFloat64 `json:"longtitude"`
+	PropertyTypeId uuid.UUID       `json:"property_type_id"`
+	Verified       bool            `json:"verified"`
+	Images         json.RawMessage `json:"images"`
+	Status         string          `json:"status"`
+	CreatedAt      time.Time       `json:"created_at"`
 }
 
 type Notification struct {
@@ -74,4 +74,9 @@ type User struct {
 	Role        string         `json:"role"`
 	// Password    string         `json:"password"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type PropertyType struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }

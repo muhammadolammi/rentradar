@@ -43,12 +43,30 @@ func server(apiConfig *handlers.Config) {
 	apiRoute.Post("/login", apiConfig.LoginHandler)
 
 	// users Handlers
-	apiRoute.Get("/user", apiConfig.AuthMiddleware([]byte(apiConfig.JWTKEY), apiConfig.GetUserHandler))
+	apiRoute.Get("/user", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.GetUserHandler))
 
 	//  Listings handlers
 	apiRoute.Get("/listings", apiConfig.GetListingsHandler)
-	apiRoute.Post("/listings", apiConfig.AuthMiddleware([]byte(apiConfig.JWTKEY), apiConfig.PostListingsHandler))
+	apiRoute.Post("/listings", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostListingsHandler))
 	apiRoute.Get("/listings/{ID}", apiConfig.GetListingHandler)
+
+	// property types handler
+	apiRoute.Get("/property_types", apiConfig.GetPropertyTypesHandler)
+	apiRoute.Get("/property_types/{NAME}", apiConfig.GetPropertyTypeHandler)
+	apiRoute.Post("/property_types", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostPropertyTypesHandler))
+
+	// Listing handlers
+	apiRoute.Post("/listings", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostListingsHandler))
+	router.Get("/listings/{ID}", apiConfig.GetListingHandler)
+	router.Get("/listings", apiConfig.GetListingsHandler)
+
+	// alert handlers
+	router.Post("/alerts", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostAlertsHandler))
+	router.Get("/alerts", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.GetAlertsHandler))
+
+	// favorite handlers
+	router.Post("/favorites", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostFavoritesHandler))
+	router.Get("/favorites", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.GetFavoritesHandler))
 
 	router.Mount("/api", apiRoute)
 	srv := &http.Server{

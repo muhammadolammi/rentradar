@@ -16,21 +16,20 @@ import (
 const createListing = `-- name: CreateListing :one
 INSERT INTO listings (
 agent_id, title,
-description, rent_type, price,location,house_type,images, status  )
-VALUES ( $1, $2, $3, $4, $5,$6,$7,$8,$9)
-RETURNING id, agent_id, title, description, rent_type, price, location, latitude, longtitude, house_type, verified, images, status, created_at
+description, price,location,property_type_id,images, status  )
+VALUES ( $1, $2, $3, $4, $5,$6,$7,$8)
+RETURNING id, agent_id, title, description, price, location, latitude, longtitude, property_type_id, verified, images, status, created_at
 `
 
 type CreateListingParams struct {
-	AgentID     uuid.UUID
-	Title       string
-	Description string
-	RentType    string
-	Price       int64
-	Location    string
-	HouseType   string
-	Images      json.RawMessage
-	Status      string
+	AgentID        uuid.UUID
+	Title          string
+	Description    string
+	Price          int64
+	Location       string
+	PropertyTypeID uuid.UUID
+	Images         json.RawMessage
+	Status         string
 }
 
 func (q *Queries) CreateListing(ctx context.Context, arg CreateListingParams) (Listing, error) {
@@ -38,10 +37,9 @@ func (q *Queries) CreateListing(ctx context.Context, arg CreateListingParams) (L
 		arg.AgentID,
 		arg.Title,
 		arg.Description,
-		arg.RentType,
 		arg.Price,
 		arg.Location,
-		arg.HouseType,
+		arg.PropertyTypeID,
 		arg.Images,
 		arg.Status,
 	)
@@ -51,12 +49,11 @@ func (q *Queries) CreateListing(ctx context.Context, arg CreateListingParams) (L
 		&i.AgentID,
 		&i.Title,
 		&i.Description,
-		&i.RentType,
 		&i.Price,
 		&i.Location,
 		&i.Latitude,
 		&i.Longtitude,
-		&i.HouseType,
+		&i.PropertyTypeID,
 		&i.Verified,
 		&i.Images,
 		&i.Status,
@@ -66,7 +63,7 @@ func (q *Queries) CreateListing(ctx context.Context, arg CreateListingParams) (L
 }
 
 const getListing = `-- name: GetListing :one
-SELECT id, agent_id, title, description, rent_type, price, location, latitude, longtitude, house_type, verified, images, status, created_at FROM listings WHERE $1=id
+SELECT id, agent_id, title, description, price, location, latitude, longtitude, property_type_id, verified, images, status, created_at FROM listings WHERE $1=id
 `
 
 func (q *Queries) GetListing(ctx context.Context, id uuid.UUID) (Listing, error) {
@@ -77,12 +74,11 @@ func (q *Queries) GetListing(ctx context.Context, id uuid.UUID) (Listing, error)
 		&i.AgentID,
 		&i.Title,
 		&i.Description,
-		&i.RentType,
 		&i.Price,
 		&i.Location,
 		&i.Latitude,
 		&i.Longtitude,
-		&i.HouseType,
+		&i.PropertyTypeID,
 		&i.Verified,
 		&i.Images,
 		&i.Status,
@@ -92,25 +88,25 @@ func (q *Queries) GetListing(ctx context.Context, id uuid.UUID) (Listing, error)
 }
 
 const getListings = `-- name: GetListings :many
-SELECT id, agent_id, title, description, rent_type, price, location, latitude, longtitude, house_type, verified, images, status, created_at
+SELECT id, agent_id, title, description, price, location, latitude, longtitude, property_type_id, verified, images, status, created_at
 FROM listings
 WHERE
   (location = coalesce($1, location))
   AND (price >= coalesce($2::bigint, price))
   AND (price <= coalesce($3::bigint, price))
-  AND (house_type = coalesce($4, house_type))
+  AND (property_type_id = coalesce($4, property_type_id))
 ORDER BY created_at DESC
 LIMIT $6
 OFFSET $5
 `
 
 type GetListingsParams struct {
-	Location  sql.NullString
-	MinPrice  sql.NullInt64
-	MaxPrice  sql.NullInt64
-	HouseType sql.NullString
-	Offset    int32
-	Limit     int32
+	Location       sql.NullString
+	MinPrice       sql.NullInt64
+	MaxPrice       sql.NullInt64
+	PropertyTypeID uuid.NullUUID
+	Offset         int32
+	Limit          int32
 }
 
 func (q *Queries) GetListings(ctx context.Context, arg GetListingsParams) ([]Listing, error) {
@@ -118,7 +114,7 @@ func (q *Queries) GetListings(ctx context.Context, arg GetListingsParams) ([]Lis
 		arg.Location,
 		arg.MinPrice,
 		arg.MaxPrice,
-		arg.HouseType,
+		arg.PropertyTypeID,
 		arg.Offset,
 		arg.Limit,
 	)
@@ -134,12 +130,11 @@ func (q *Queries) GetListings(ctx context.Context, arg GetListingsParams) ([]Lis
 			&i.AgentID,
 			&i.Title,
 			&i.Description,
-			&i.RentType,
 			&i.Price,
 			&i.Location,
 			&i.Latitude,
 			&i.Longtitude,
-			&i.HouseType,
+			&i.PropertyTypeID,
 			&i.Verified,
 			&i.Images,
 			&i.Status,
