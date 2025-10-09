@@ -12,22 +12,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type Agent struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	CompanyName string
-	Verified    bool
-	Rating      float64
-}
-
 type Alert struct {
-	ID             uuid.UUID
-	UserID         uuid.UUID
-	MinPrice       int64
-	MaxPrice       int64
-	Location       string
-	PropertyTypeID uuid.UUID
-	ContactMethod  string
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	MinPrice      int64
+	MaxPrice      int64
+	Location      string
+	PropertyType  string
+	ContactMethod string
 }
 
 type Favorite struct {
@@ -37,32 +29,31 @@ type Favorite struct {
 }
 
 type Listing struct {
-	ID             uuid.UUID
-	AgentID        uuid.UUID
-	Title          string
-	Description    string
-	Price          int64
-	Location       string
-	Latitude       sql.NullFloat64
-	Longtitude     sql.NullFloat64
-	PropertyTypeID uuid.UUID
-	Verified       bool
-	Images         json.RawMessage
-	Status         string
-	CreatedAt      time.Time
+	ID           uuid.UUID
+	AgentID      uuid.UUID
+	Title        string
+	Description  string
+	Price        int64
+	Location     string
+	Latitude     sql.NullFloat64
+	Longtitude   sql.NullFloat64
+	PropertyType string
+	Verified     bool
+	Images       json.RawMessage
+	Status       string
+	CreatedAt    time.Time
 }
 
 type Notification struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	ListingID uuid.UUID
-	SentAt    time.Time
-	Status    string
-}
-
-type PropertyType struct {
-	ID   uuid.UUID
-	Name string
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	ListingID     uuid.UUID
+	SentAt        time.Time
+	Contact       string
+	ContactMethod string
+	Status        string
+	Subject       string
+	Body          string
 }
 
 type RefreshToken struct {
@@ -82,4 +73,7 @@ type User struct {
 	Role        string
 	Password    string
 	CreatedAt   time.Time
+	CompanyName sql.NullString
+	Verified    bool
+	Rating      float64
 }

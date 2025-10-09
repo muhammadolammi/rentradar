@@ -17,7 +17,7 @@ import (
 func (apiConfig *Config) GetListingsHandler(w http.ResponseWriter, r *http.Request) {
 	//  filters should be gootten with url param (location, type)
 	location := r.URL.Query().Get("location")
-	propertyTypeName := r.URL.Query().Get("property_type_name")
+	propertyType := r.URL.Query().Get("property_type_name")
 	minPrice := r.URL.Query().Get("min_price")
 	maxPrice := r.URL.Query().Get("max_price")
 	page := r.URL.Query().Get("page")
@@ -27,22 +27,17 @@ func (apiConfig *Config) GetListingsHandler(w http.ResponseWriter, r *http.Reque
 	locationParam := sql.NullString{Valid: false}
 	minPriceParam := sql.NullInt64{Valid: false}
 	maxPriceParam := sql.NullInt64{Valid: false}
-	propertyTypeParam := uuid.NullUUID{
+	propertyTypeParam := sql.NullString{
 		Valid: false,
 	}
 	if location != "" {
 		locationParam = sql.NullString{Valid: true, String: location}
 	}
-	if propertyTypeName != "" {
-		propertyType, err := apiConfig.DB.GetPropertyTypeWithName(r.Context(), propertyTypeName)
-		if err != nil {
-			helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error getting property type. err: %v", err))
-			return
-		}
+	if propertyType != "" {
 
-		propertyTypeParam = uuid.NullUUID{
-			Valid: true,
-			UUID:  propertyType.ID,
+		propertyTypeParam = sql.NullString{
+			Valid:  true,
+			String: propertyType,
 		}
 	}
 	if minPrice != "" {
@@ -88,12 +83,12 @@ func (apiConfig *Config) GetListingsHandler(w http.ResponseWriter, r *http.Reque
 
 	listings, err := apiConfig.DB.GetListings(context.Background(), database.GetListingsParams{
 		// Location: ,
-		Offset:         int32(offset),
-		Limit:          int32(limitInt),
-		Location:       locationParam,
-		MinPrice:       minPriceParam,
-		MaxPrice:       maxPriceParam,
-		PropertyTypeID: propertyTypeParam,
+		Offset:       int32(offset),
+		Limit:        int32(limitInt),
+		Location:     locationParam,
+		MinPrice:     minPriceParam,
+		MaxPrice:     maxPriceParam,
+		PropertyType: propertyTypeParam,
 	})
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error geting listings. err: %v", err))
@@ -110,22 +105,18 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 		helpers.RespondWithError(w, http.StatusUnauthorized, "user not an agent")
 		return
 	}
-	agent, err := apiConfig.DB.GetAgentWithUserId(r.Context(), user.ID)
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusUnauthorized, fmt.Sprintf("user getting agent. err: %v", err))
-		return
-	}
+
 	body := struct {
-		Description    string          `json:"description"`
-		Title          string          `json:"title"`
-		PropertyTypeId uuid.UUID       `json:"property_type_id"`
-		Images         json.RawMessage `json:"images"`
-		Price          int64           `json:"price"`
-		Location       string          `json:"location"`
+		Description  string          `json:"description"`
+		Title        string          `json:"title"`
+		PropertyType string          `json:"property_type"`
+		Images       json.RawMessage `json:"images"`
+		Price        int64           `json:"price"`
+		Location     string          `json:"location"`
 	}{}
 
 	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&body)
+	err := decoder.Decode(&body)
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error decoding request body. err: %v", err))
 		return
@@ -138,8 +129,8 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing description.")
 		return
 	}
-	if body.PropertyTypeId == uuid.Nil {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing property_type_id.")
+	if body.PropertyType == "" {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Enter the listing property_type.")
 		return
 	}
 
@@ -156,13 +147,13 @@ func (apiConfig *Config) PostListingsHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	listing, err := apiConfig.DB.CreateListing(context.Background(), database.CreateListingParams{
-		AgentID:        agent.ID,
-		Price:          body.Price,
-		Location:       body.Location,
-		Description:    body.Description,
-		Title:          body.Title,
-		PropertyTypeID: body.PropertyTypeId,
-		Images:         body.Images,
+		AgentID:      user.ID,
+		Price:        body.Price,
+		Location:     body.Location,
+		Description:  body.Description,
+		Title:        body.Title,
+		PropertyType: body.PropertyType,
+		Images:       body.Images,
 		// Status should be active on creation
 		Status: "active",
 	})

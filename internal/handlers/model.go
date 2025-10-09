@@ -26,13 +26,13 @@ type Agent struct {
 }
 
 type Alert struct {
-	ID             uuid.UUID `json:"id"`
-	UserID         uuid.UUID `json:"user_id"`
-	MinPrice       int64     `json:"min_price"`
-	MaxPrice       int64     `json:"max_price"`
-	Location       string    `json:"location"`
-	PropertyTypeID uuid.UUID `json:"property_type"`
-	ContactMethod  string    `json:"contact_method"`
+	ID            uuid.UUID `json:"id"`
+	UserID        uuid.UUID `json:"user_id"`
+	MinPrice      int64     `json:"min_price"`
+	MaxPrice      int64     `json:"max_price"`
+	Location      string    `json:"location"`
+	PropertyType  string    `json:"property_type"`
+	ContactMethod string    `json:"contact_method"`
 }
 
 type Favorite struct {
@@ -42,27 +42,31 @@ type Favorite struct {
 }
 
 type Listing struct {
-	ID             uuid.UUID       `json:"id"`
-	AgentID        uuid.UUID       `json:"agent_id"`
-	Title          string          `json:"title"`
-	Description    string          `json:"description"`
-	Price          int64           `json:"price"`
-	Location       string          `json:"location"`
-	Latitude       sql.NullFloat64 `json:"latitude"`
-	Longtitude     sql.NullFloat64 `json:"longtitude"`
-	PropertyTypeId uuid.UUID       `json:"property_type_id"`
-	Verified       bool            `json:"verified"`
-	Images         json.RawMessage `json:"images"`
-	Status         string          `json:"status"`
-	CreatedAt      time.Time       `json:"created_at"`
+	ID           uuid.UUID       `json:"id"`
+	AgentID      uuid.UUID       `json:"agent_id"`
+	Title        string          `json:"title"`
+	Description  string          `json:"description"`
+	Price        int64           `json:"price"`
+	Location     string          `json:"location"`
+	Latitude     sql.NullFloat64 `json:"latitude"`
+	Longtitude   sql.NullFloat64 `json:"longtitude"`
+	PropertyType string          `json:"property_type"`
+	Verified     bool            `json:"verified"`
+	Images       json.RawMessage `json:"images"`
+	Status       string          `json:"status"`
+	CreatedAt    time.Time       `json:"created_at"`
 }
 
 type Notification struct {
-	ID        uuid.UUID `json:"id"`
-	UserID    uuid.UUID `json:"user_id"`
-	ListingID uuid.UUID `json:"listing_id"`
-	SentAt    time.Time `json:"sent_at"`
-	Status    string    `json:"status"`
+	ID            uuid.UUID `json:"id"`
+	UserID        uuid.UUID `json:"user_id"`
+	Contact       string    `json:"contact"`
+	Body          string    `json:"body"`
+	Subject       string    `json:"subject"`
+	ListingID     uuid.UUID `json:"listing_id"`
+	SentAt        time.Time `json:"sent_at"`
+	Status        string    `json:"status"`
+	ContactMethod string    `json:"contact_method"`
 }
 
 type User struct {

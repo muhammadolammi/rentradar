@@ -30,19 +30,19 @@ func DbUsersToModelsUsers(dbUsers []database.User) []User {
 
 func DbListingToModelsListing(dbListing database.Listing) Listing {
 	return Listing{
-		ID:             dbListing.ID,
-		AgentID:        dbListing.AgentID,
-		Title:          dbListing.Title,
-		Description:    dbListing.Description,
-		Price:          dbListing.Price,
-		Location:       dbListing.Location,
-		Latitude:       dbListing.Latitude,
-		Longtitude:     dbListing.Longtitude,
-		PropertyTypeId: dbListing.PropertyTypeID,
-		Verified:       dbListing.Verified,
-		Images:         dbListing.Images,
-		Status:         dbListing.Status,
-		CreatedAt:      dbListing.CreatedAt,
+		ID:           dbListing.ID,
+		AgentID:      dbListing.AgentID,
+		Title:        dbListing.Title,
+		Description:  dbListing.Description,
+		Price:        dbListing.Price,
+		Location:     dbListing.Location,
+		Latitude:     dbListing.Latitude,
+		Longtitude:   dbListing.Longtitude,
+		PropertyType: dbListing.PropertyType,
+		Verified:     dbListing.Verified,
+		Images:       dbListing.Images,
+		Status:       dbListing.Status,
+		CreatedAt:    dbListing.CreatedAt,
 	}
 }
 
@@ -54,33 +54,16 @@ func DbListingsToModelsListings(dbListings []database.Listing) []Listing {
 	return listings
 }
 
-// PropertyType model helpers
-func DbPropertyTypeToModelsPropertyType(dbPropertyType database.PropertyType) PropertyType {
-	return PropertyType{
-		ID:   dbPropertyType.ID,
-		Name: dbPropertyType.Name,
-	}
-
-}
-
-func DbPropertyTypesToModelsPropertyTypes(dbPropertyTypes []database.PropertyType) []PropertyType {
-	property_types := []PropertyType{}
-	for _, dbPropertyType := range dbPropertyTypes {
-		property_types = append(property_types, DbPropertyTypeToModelsPropertyType(dbPropertyType))
-	}
-	return property_types
-}
-
 // Alert Model Helper
 func DbAlertToModelsAlert(dbAlert database.Alert) Alert {
 	return Alert{
-		ID:             dbAlert.ID,
-		UserID:         dbAlert.UserID,
-		MinPrice:       dbAlert.MinPrice,
-		MaxPrice:       dbAlert.MaxPrice,
-		Location:       dbAlert.Location,
-		PropertyTypeID: dbAlert.PropertyTypeID,
-		ContactMethod:  dbAlert.ContactMethod,
+		ID:            dbAlert.ID,
+		UserID:        dbAlert.UserID,
+		MinPrice:      dbAlert.MinPrice,
+		MaxPrice:      dbAlert.MaxPrice,
+		Location:      dbAlert.Location,
+		PropertyType:  dbAlert.PropertyType,
+		ContactMethod: dbAlert.ContactMethod,
 	}
 }
 
@@ -107,4 +90,27 @@ func DbFavoritesToModelFavorites(dbFavs []database.Favorite) []Favorite {
 		favs = append(favs, DbFavoriteToModelFavorite(f))
 	}
 	return favs
+}
+
+// Notification  Model Helper
+func DbNotificationToModelsNotification(dbNotification database.Notification) Notification {
+	return Notification{
+		ID:            dbNotification.ID,
+		UserID:        dbNotification.UserID,
+		Status:        dbNotification.Status,
+		ListingID:     dbNotification.ListingID,
+		SentAt:        dbNotification.SentAt,
+		ContactMethod: dbNotification.ContactMethod,
+		Contact:       dbNotification.Contact,
+		Subject:       dbNotification.Subject,
+		Body:          dbNotification.Body,
+	}
+}
+
+func DbNotificationsToModelsNotifications(dbNotifications []database.Notification) []Notification {
+	notications := []Notification{}
+	for _, dbNotification := range dbNotifications {
+		notications = append(notications, DbNotificationToModelsNotification(dbNotification))
+	}
+	return notications
 }

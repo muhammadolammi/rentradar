@@ -77,9 +77,7 @@ func SetupTestEnv(t *testing.T) *TestEnv {
 	router.Post("/register", app.RegisterHandler)
 	router.Post("/login", app.LoginHandler)
 	router.Post("/refresh", app.RefreshTokens)
-	router.Post("/property_types", app.AuthMiddleware(true, []byte(jwt_key), app.PostPropertyTypesHandler))
-	router.Get("/property_types/{NAME}", app.GetPropertyTypeHandler)
-	router.Get("/property_types", app.GetPropertyTypesHandler)
+
 	router.Post("/listings", app.AuthMiddleware(false, []byte(jwt_key), app.PostListingsHandler))
 	router.Get("/listings/{ID}", app.GetListingHandler)
 	router.Get("/listings", app.GetListingsHandler)

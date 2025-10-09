@@ -67,49 +67,15 @@ func TestFavoritesEndpoints(t *testing.T) {
 	}
 	t.Log("✅ Successfully Logged In")
 
-	// ---------- Create Property Type ----------
-	t.Log("--- Creating property type")
-	propBody := map[string]any{"name": "duplex"}
-	propJSON, _ := json.Marshal(propBody)
-	req = httptest.NewRequest(http.MethodPost, "/property_types", bytes.NewBuffer(propJSON))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("API-KEY", env.App.APIKEY)
-	req.Header.Set("Authorization", "Bearer "+loginResp.AccessToken)
-	req.Header.Set("SUDO-KEY", env.App.SUDOKEY)
-
-	w = httptest.NewRecorder()
-	env.Router.ServeHTTP(w, req)
-
-	var propResp map[string]any
-	if w.Code == http.StatusBadRequest && strings.Contains(w.Body.String(), "property_type already exists") {
-		t.Log("Property type already exists — continuing test.")
-		// Retrieve existing one
-		req = httptest.NewRequest(http.MethodGet, "/property_types/duplex", nil)
-		req.Header.Set("API-KEY", env.App.APIKEY)
-		req.Header.Set("Authorization", "Bearer "+loginResp.AccessToken)
-		w = httptest.NewRecorder()
-		env.Router.ServeHTTP(w, req)
-		if err := json.Unmarshal(w.Body.Bytes(), &propResp); err != nil {
-			t.Fatalf("error parsing get property type: %v", err)
-		}
-	} else if w.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d, body: %s", w.Code, w.Body.String())
-	} else {
-		if err := json.Unmarshal(w.Body.Bytes(), &propResp); err != nil {
-			t.Fatalf("error parsing create property type response: %v", err)
-		}
-	}
-	propertyTypeID := propResp["id"].(string)
-
 	// ---------- Create Listing ----------
 	t.Log("--- Creating listing for favorite")
 	listingBody := map[string]any{
-		"title":            "Modern Duplex Apartment",
-		"description":      "A clean duplex apartment in Lekki",
-		"price":            500000,
-		"location":         "Lekki",
-		"property_type_id": propertyTypeID,
-		"images":           []string{"img1.jpg", "img2.jpg"},
+		"title":         "Modern Duplex Apartment",
+		"description":   "A clean duplex apartment in Lekki",
+		"price":         500000,
+		"location":      "Lekki",
+		"property_type": "apartment",
+		"images":        []string{"img1.jpg", "img2.jpg"},
 	}
 	listingJSON, _ := json.Marshal(listingBody)
 	req = httptest.NewRequest(http.MethodPost, "/listings", bytes.NewBuffer(listingJSON))

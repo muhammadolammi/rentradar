@@ -50,11 +50,6 @@ func server(apiConfig *handlers.Config) {
 	apiRoute.Post("/listings", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostListingsHandler))
 	apiRoute.Get("/listings/{ID}", apiConfig.GetListingHandler)
 
-	// property types handler
-	apiRoute.Get("/property_types", apiConfig.GetPropertyTypesHandler)
-	apiRoute.Get("/property_types/{NAME}", apiConfig.GetPropertyTypeHandler)
-	apiRoute.Post("/property_types", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostPropertyTypesHandler))
-
 	// Listing handlers
 	apiRoute.Post("/listings", apiConfig.AuthMiddleware(false, []byte(apiConfig.JWTKEY), apiConfig.PostListingsHandler))
 	router.Get("/listings/{ID}", apiConfig.GetListingHandler)

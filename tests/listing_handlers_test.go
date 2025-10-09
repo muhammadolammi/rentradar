@@ -75,80 +75,19 @@ func TestListingsEndpoints(t *testing.T) {
 	}
 	t.Log("✅ Successfully Logged In ")
 
-	// ---------- POST PROPERTY TYPE ----------
-	t.Log("-- Posting Property Type")
-
-	postBody := map[string]any{
-		"name": "apartment",
-	}
-	postJSON, _ := json.Marshal(postBody)
-
-	req = httptest.NewRequest(http.MethodPost, "/property_types", bytes.NewBuffer(postJSON))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("API-KEY", env.App.APIKEY)
-
-	req.Header.Set("Authorization", "Bearer "+loginResp.AccessToken)
-	req.Header.Set("SUDO-KEY", env.App.SUDOKEY) // ✅ pass sudo key
-	w = httptest.NewRecorder()
-
-	env.Router.ServeHTTP(w, req)
-
-	var postResp map[string]any
-
-	if w.Code == http.StatusBadRequest && strings.Contains(w.Body.String(), "property_type already exists") {
-		t.Log("PropertyType already exists — continuing test.")
-	} else if w.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d, body: %s", w.Code, w.Body.String())
-	}
-	// else {
-	// 	if err := json.Unmarshal(w.Body.Bytes(), &postResp); err != nil {
-	// 		t.Fatalf("error parsing create property type response: %v", err)
-	// 	}
-	// 	if _, ok := postResp["name"]; !ok {
-	// 		t.Fatal("expected name field in create property type response")
-	// 	}
-	// 	propertyTypeId = postResp["id"]
-	// 	t.Log("✅ Successfully Created Property Type")
-	// }
-	// ---------- POST PROPERTY TYPE ----------
-	// todo
-	t.Log("-- Getting Property Type")
-	req = httptest.NewRequest(http.MethodGet, "/property_types/apartment", bytes.NewBuffer(postJSON))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("API-KEY", env.App.APIKEY)
-	req.Header.Set("Authorization", "Bearer "+loginResp.AccessToken)
-	w = httptest.NewRecorder()
-	env.Router.ServeHTTP(w, req)
-	getresponse := map[string]any{}
-	if err := json.Unmarshal(w.Body.Bytes(), &getresponse); err != nil {
-		t.Fatalf("error parsing get property type response: %v", err)
-	}
-	if _, ok := getresponse["name"]; !ok {
-		t.Fatal("expected name field in get property type response")
-	}
-	if _, ok := getresponse["id"]; !ok {
-		t.Fatal("expected id field in get property type response")
-	}
-	propertyTypeId, ok := getresponse["id"].(string)
-	if !ok || propertyTypeId == "" {
-		t.Fatalf("expected valid propertyTypeId string, got %#v", getresponse["id"])
-	}
-	t.Logf("✅ Successfully Retrieved Property Type: %s", propertyTypeId)
-	t.Log("✅ Successfully Retrieved Property Type")
-
 	// ---------- CREATE LISTING ----------
 	t.Log("--- Creating Listings")
 
-	postBody = map[string]any{
-		"description":      "A beautiful 3-bedroom apartment with modern amenities.",
-		"title":            "Modern Apartment",
-		"rent_type":        "monthly",
-		"property_type_id": propertyTypeId,
-		"images":           []string{"img1.jpg", "img2.jpg"},
-		"price":            250000,
-		"location":         "Lagos",
+	postBody := map[string]any{
+		"description":   "A beautiful 3-bedroom apartment with modern amenities.",
+		"title":         "Modern Apartment",
+		"rent_type":     "monthly",
+		"property_type": "apartment",
+		"images":        []string{"img1.jpg", "img2.jpg"},
+		"price":         250000,
+		"location":      "Lagos",
 	}
-	postJSON, _ = json.Marshal(postBody)
+	postJSON, _ := json.Marshal(postBody)
 
 	req = httptest.NewRequest(http.MethodPost, "/listings", bytes.NewBuffer(postJSON))
 	req.Header.Set("Content-Type", "application/json")
@@ -165,7 +104,7 @@ func TestListingsEndpoints(t *testing.T) {
 		t.Fatalf("expected 200, got %d, body: %s", w.Code, w.Body.String())
 	}
 
-	postResp = map[string]any{}
+	postResp := map[string]any{}
 	if err := json.Unmarshal(w.Body.Bytes(), &postResp); err != nil {
 		t.Fatalf("error parsing create listing response: %v", err)
 	}
@@ -178,7 +117,7 @@ func TestListingsEndpoints(t *testing.T) {
 	// ---------- GET LISTINGS ----------
 	t.Log("--- Getting Listings")
 
-	req = httptest.NewRequest(http.MethodGet, "/listings?location=Lagos&property_type_name=apartment", nil)
+	req = httptest.NewRequest(http.MethodGet, "/listings?location=Lagos&property_type=apartment", nil)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("API-KEY", env.App.APIKEY)
 

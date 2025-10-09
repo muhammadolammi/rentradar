@@ -17,7 +17,7 @@ INSERT INTO users (
 first_name, last_name,
 email, phone_number, role,password  )
 VALUES ( $1, $2, $3, $4, $5,$6)
-RETURNING id, first_name, last_name, email, phone_number, role, password, created_at
+RETURNING id, first_name, last_name, email, phone_number, role, password, created_at, company_name, verified, rating
 `
 
 type CreateUserParams struct {
@@ -48,12 +48,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Role,
 		&i.Password,
 		&i.CreatedAt,
+		&i.CompanyName,
+		&i.Verified,
+		&i.Rating,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, first_name, last_name, email, phone_number, role, password, created_at FROM users WHERE $1=id
+SELECT id, first_name, last_name, email, phone_number, role, password, created_at, company_name, verified, rating FROM users WHERE $1=id
 `
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -68,12 +71,15 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Role,
 		&i.Password,
 		&i.CreatedAt,
+		&i.CompanyName,
+		&i.Verified,
+		&i.Rating,
 	)
 	return i, err
 }
 
 const getUserWithEmail = `-- name: GetUserWithEmail :one
-SELECT id, first_name, last_name, email, phone_number, role, password, created_at FROM users WHERE $1=email
+SELECT id, first_name, last_name, email, phone_number, role, password, created_at, company_name, verified, rating FROM users WHERE $1=email
 `
 
 func (q *Queries) GetUserWithEmail(ctx context.Context, email string) (User, error) {
@@ -88,12 +94,15 @@ func (q *Queries) GetUserWithEmail(ctx context.Context, email string) (User, err
 		&i.Role,
 		&i.Password,
 		&i.CreatedAt,
+		&i.CompanyName,
+		&i.Verified,
+		&i.Rating,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, first_name, last_name, email, phone_number, role, password, created_at FROM users
+SELECT id, first_name, last_name, email, phone_number, role, password, created_at, company_name, verified, rating FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -114,6 +123,9 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.Role,
 			&i.Password,
 			&i.CreatedAt,
+			&i.CompanyName,
+			&i.Verified,
+			&i.Rating,
 		); err != nil {
 			return nil, err
 		}
@@ -145,6 +157,40 @@ func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) 
 	return err
 }
 
+const updateUserCompanyName = `-- name: UpdateUserCompanyName :exec
+UPDATE users
+SET 
+  company_name = $1
+WHERE id = $2
+`
+
+type UpdateUserCompanyNameParams struct {
+	CompanyName sql.NullString
+	ID          uuid.UUID
+}
+
+func (q *Queries) UpdateUserCompanyName(ctx context.Context, arg UpdateUserCompanyNameParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserCompanyName, arg.CompanyName, arg.ID)
+	return err
+}
+
+const updateUserRating = `-- name: UpdateUserRating :exec
+UPDATE users
+SET 
+  rating = $1
+WHERE id = $2
+`
+
+type UpdateUserRatingParams struct {
+	Rating float64
+	ID     uuid.UUID
+}
+
+func (q *Queries) UpdateUserRating(ctx context.Context, arg UpdateUserRatingParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserRating, arg.Rating, arg.ID)
+	return err
+}
+
 const userExists = `-- name: UserExists :one
 SELECT EXISTS (
     SELECT 1
@@ -158,4 +204,16 @@ func (q *Queries) UserExists(ctx context.Context, email string) (bool, error) {
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const verifyUser = `-- name: VerifyUser :exec
+UPDATE users
+SET 
+  verified = true
+WHERE id = $1
+`
+
+func (q *Queries) VerifyUser(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, verifyUser, id)
+	return err
 }

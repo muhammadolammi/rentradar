@@ -11,7 +11,7 @@ CREATE TABLE listings (
     location TEXT NOT NULL,
     latitude FLOAT ,
     longtitude FLOAT,
-    property_type_id UUID NOT NULL, 
+    property_type TEXT NOT NULL, 
     -- if the apartment is verified by admin
     verified BOOLEAN NOT NULL  DEFAULT false,
     --  images JSONB NOT NULL,
@@ -22,11 +22,7 @@ CREATE TABLE listings (
 
     CONSTRAINT fk_listings_agent
         FOREIGN KEY (agent_id)
-        REFERENCES agents(id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_listings_property_type
-        FOREIGN KEY (property_type_id)
-        REFERENCES property_types(id)
+        REFERENCES users(id)
         ON DELETE CASCADE
     
     );

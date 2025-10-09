@@ -13,18 +13,18 @@ import (
 
 const createAlert = `-- name: CreateAlert :one
 INSERT INTO alerts (
-user_id, min_price,max_price, location, property_type_id,contact_method )
+user_id, min_price,max_price, location, property_type,contact_method )
 VALUES ( $1, $2, $3, $4, $5,$6)
-RETURNING id, user_id, min_price, max_price, location, property_type_id, contact_method
+RETURNING id, user_id, min_price, max_price, location, property_type, contact_method
 `
 
 type CreateAlertParams struct {
-	UserID         uuid.UUID
-	MinPrice       int64
-	MaxPrice       int64
-	Location       string
-	PropertyTypeID uuid.UUID
-	ContactMethod  string
+	UserID        uuid.UUID
+	MinPrice      int64
+	MaxPrice      int64
+	Location      string
+	PropertyType  string
+	ContactMethod string
 }
 
 func (q *Queries) CreateAlert(ctx context.Context, arg CreateAlertParams) (Alert, error) {
@@ -33,7 +33,7 @@ func (q *Queries) CreateAlert(ctx context.Context, arg CreateAlertParams) (Alert
 		arg.MinPrice,
 		arg.MaxPrice,
 		arg.Location,
-		arg.PropertyTypeID,
+		arg.PropertyType,
 		arg.ContactMethod,
 	)
 	var i Alert
@@ -43,14 +43,14 @@ func (q *Queries) CreateAlert(ctx context.Context, arg CreateAlertParams) (Alert
 		&i.MinPrice,
 		&i.MaxPrice,
 		&i.Location,
-		&i.PropertyTypeID,
+		&i.PropertyType,
 		&i.ContactMethod,
 	)
 	return i, err
 }
 
 const getAlert = `-- name: GetAlert :one
-SELECT id, user_id, min_price, max_price, location, property_type_id, contact_method FROM alerts WHERE $1=id
+SELECT id, user_id, min_price, max_price, location, property_type, contact_method FROM alerts WHERE $1=id
 `
 
 func (q *Queries) GetAlert(ctx context.Context, id uuid.UUID) (Alert, error) {
@@ -62,14 +62,14 @@ func (q *Queries) GetAlert(ctx context.Context, id uuid.UUID) (Alert, error) {
 		&i.MinPrice,
 		&i.MaxPrice,
 		&i.Location,
-		&i.PropertyTypeID,
+		&i.PropertyType,
 		&i.ContactMethod,
 	)
 	return i, err
 }
 
 const getUserAlerts = `-- name: GetUserAlerts :many
-SELECT id, user_id, min_price, max_price, location, property_type_id, contact_method FROM alerts WHERE $1=user_id
+SELECT id, user_id, min_price, max_price, location, property_type, contact_method FROM alerts WHERE $1=user_id
 `
 
 func (q *Queries) GetUserAlerts(ctx context.Context, userID uuid.UUID) ([]Alert, error) {
@@ -87,7 +87,7 @@ func (q *Queries) GetUserAlerts(ctx context.Context, userID uuid.UUID) ([]Alert,
 			&i.MinPrice,
 			&i.MaxPrice,
 			&i.Location,
-			&i.PropertyTypeID,
+			&i.PropertyType,
 			&i.ContactMethod,
 		); err != nil {
 			return nil, err

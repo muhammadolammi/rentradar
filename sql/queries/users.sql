@@ -30,3 +30,21 @@ UPDATE users
 SET 
   password = $1
 WHERE email = $2;
+
+-- name: UpdateUserCompanyName :exec
+UPDATE users
+SET 
+  company_name = $1
+WHERE id = $2;
+
+-- name: VerifyUser :exec
+UPDATE users
+SET 
+  verified = true
+WHERE id = $1;
+
+-- name: UpdateUserRating :exec
+UPDATE users
+SET 
+  rating = $1
+WHERE id = $2;

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/muhammadolammi/rentradar/internal/database"
 	"github.com/muhammadolammi/rentradar/internal/helpers"
 )
@@ -14,11 +13,11 @@ import (
 func (apiConfig *Config) PostAlertsHandler(w http.ResponseWriter, r *http.Request, user User) {
 
 	body := struct {
-		MinPrice       int64  `json:"min_price"`
-		MaxPrice       int64  `json:"max_price"`
-		Location       string `json:"location"`
-		PropertyTypeID string `json:"property_type_id"`
-		ContactMethod  string `json:"contact_method"`
+		MinPrice      int64  `json:"min_price"`
+		MaxPrice      int64  `json:"max_price"`
+		Location      string `json:"location"`
+		PropertyType  string `json:"property_type"`
+		ContactMethod string `json:"contact_method"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		helpers.RespondWithError(w, http.StatusBadRequest, "invalid JSON")
@@ -41,19 +40,13 @@ func (apiConfig *Config) PostAlertsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	propertyUUID, err := uuid.Parse(body.PropertyTypeID)
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusBadRequest, "invalid property_type_id")
-		return
-	}
-
 	alert, err := apiConfig.DB.CreateAlert(context.Background(), database.CreateAlertParams{
-		UserID:         user.ID,
-		MinPrice:       body.MinPrice,
-		MaxPrice:       body.MaxPrice,
-		Location:       body.Location,
-		PropertyTypeID: propertyUUID,
-		ContactMethod:  body.ContactMethod,
+		UserID:        user.ID,
+		MinPrice:      body.MinPrice,
+		MaxPrice:      body.MaxPrice,
+		Location:      body.Location,
+		PropertyType:  body.PropertyType,
+		ContactMethod: body.ContactMethod,
 	})
 
 	if err != nil {

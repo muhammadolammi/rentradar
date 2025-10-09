@@ -62,13 +62,7 @@ func (apiConfig *Config) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		helpers.RespondWithError(w, http.StatusBadRequest, "User  role must be one of (user, agent, landlord or admin)")
 		return
 	}
-	if body.Role == "agent" {
-		// company must exist
-		if body.CompanyName == "" {
-			helpers.RespondWithError(w, http.StatusBadRequest, "Enter the company name if registering as an agent.")
-			return
-		}
-	}
+
 	if body.Role == "admin" {
 		helpers.RespondWithError(w, http.StatusUnauthorized, "admin sign up not allowed")
 		return
@@ -98,19 +92,22 @@ func (apiConfig *Config) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error creating user. err: %v", err))
 		return
 	}
-	// Create an agent if user role is agent
-	if user.Role == "agent" {
-		_, err = apiConfig.DB.CreateAgent(r.Context(), database.CreateAgentParams{
-			UserID:      user.ID,
-			CompanyName: body.CompanyName,
+	// Update the company name if user role is agent
+	if body.Role == "agent" {
+		// company must exist
+		if body.CompanyName == "" {
+			helpers.RespondWithError(w, http.StatusBadRequest, "Enter the company name if registering as an agent")
+			return
+		}
+		err = apiConfig.DB.UpdateUserCompanyName(r.Context(), database.UpdateUserCompanyNameParams{
+			ID:          user.ID,
+			CompanyName: sql.NullString{Valid: true, String: body.CompanyName},
 		})
 		if err != nil {
 			helpers.RespondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error creating user. err: %v", err))
 			return
 		}
-
 	}
-
 	helpers.RespondWithJson(w, 200, "signup successful")
 }
 

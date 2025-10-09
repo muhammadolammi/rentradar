@@ -6,11 +6,13 @@ CREATE TABLE users (
     first_name TEXT  NOT NULL ,
     last_name TEXT  NOT NULL ,
     email TEXT UNIQUE NOT NULL ,
-    phone_number TEXT UNIQUE ,
-    -- role ENUM('user','agent','admin', "landlord") NOT NULL,
+    phone_number TEXT UNIQUE , 
     role TEXT  NOT NULL ,
     password TEXT NOT NULL ,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    company_name TEXT UNIQUE ,
+    verified BOOLEAN NOT NULL DEFAULT false,
+    rating FLOAT NOT NULL DEFAULT 0
 );
 
 -- +goose Down
